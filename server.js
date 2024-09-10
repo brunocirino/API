@@ -27,8 +27,8 @@ app.get('/services', (req, res) => {
 
 var connection = mysql.createConnection({
     host: 'localhost',
-    user: 'root',
-    password: null,
+    user: 'username',
+    password: '0110',
     database: 'web_tcc'
 });
 
