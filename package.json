@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@api/render-api": "file:.api/apis/render-api",
+    "express": "^4.20.0",
+    "mysql": "^2.18.1"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}
