@@ -73,10 +73,10 @@ app.get('/ConsultaGrupoExist', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        const rows = result.rows;
+        const grupoRows = result.rows;
 
         // Transformar os resultados em um formato JSON simples
-        const results = rows.map(row => ({
+        const results = grupoRows.map(row => ({
             id: row.id,
             Nome: row.Nome
         }));
