@@ -153,7 +153,7 @@ app.post('/CadastrarTreino/:id_prof/:nm_treino/:exercicio/:series/:repeticoes/:c
 });
 
 app.post('/CadastrarAcademia/:id_academia/:nm_academia/', (req, res) => {
-    let query = "INSERT INTO academias (id, Nome) VALUES ($1, $2)";
+    let query = "INSERT INTO academias (id, nm_academia) VALUES ($1, $2)";
 
     const params = req.params;
 
