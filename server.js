@@ -67,7 +67,7 @@ app.get('/login/APP/:CPF/:senha', (req, res) => {
 app.get('/ConsultaGrupoExist', (req, res) => {
     let query = "SELECT id, Nome FROM grupo_treino";
 
-    connection.query(query, (err, rows) => {
+    client.query(query, (err, rows) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -88,7 +88,7 @@ app.get('/ConsultaGrupoExist', (req, res) => {
 app.get('/ConsultaAcademiaExist', (req, res) => {
     let query = "SELECT DISTINCT id, Nome FROM academias";
 
-    connection.query(query, (err, rows) => {
+    client.query(query, (err, rows) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -113,7 +113,7 @@ app.post('/CriarGrupo/:nome', (req, res) => {
 
     const params = req.params
 
-    connection.query(query, [params.nome], (err, result) => {
+    client.query(query, [params.nome], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -136,7 +136,7 @@ app.post('/CadastrarTreino/:id_prof/:nm_treino/:exercicio/:series/:repeticoes/:c
     const Nm_comentario_tratado = decodeURIComponent(params.comentarios.replace(/\+/g, " "));
     
 
-    connection.query(query, [params.id_prof, Nm_Treino_tratado, Nm_exercicio_tratado, params.series, params.repeticoes, Nm_comentario_tratado, params.id_identificador], (err, result) => {
+    client.query(query, [params.id_prof, Nm_Treino_tratado, Nm_exercicio_tratado, params.series, params.repeticoes, Nm_comentario_tratado, params.id_identificador], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -157,7 +157,7 @@ app.post('/CadastrarAcademia/:id_academia/:nm_academia/', (req, res) => {
     const Id_academia = decodeURIComponent(params.id_academia.replace(/\+/g, " "));
     const nm_academia = decodeURIComponent(params.nm_academia.replace(/\+/g, " "));
 
-    connection.query(query, [Id_academia, nm_academia], (err, result) => {
+    client.query(query, [Id_academia, nm_academia], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -179,7 +179,7 @@ app.post('/AtribuirAluno/:id_prof/:id_aluno/:id_treino', (req, res) => {
     const id_aluno = decodeURIComponent(params.id_aluno.replace(/\+/g, " "));
     const id_treino = decodeURIComponent(params.id_treino.replace(/\+/g, " "));
 
-    connection.query(query, [id_prof, id_aluno, id_treino], (err, result) => {
+    client.query(query, [id_prof, id_aluno, id_treino], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -201,7 +201,7 @@ app.post('/CadastrarAparelhos/:id_tipo/:nm_aparelhos/:id_academia', (req, res) =
     const Id_academia = decodeURIComponent(params.id_academia.replace(/\+/g, " "));
     const nm_aparelhos = decodeURIComponent(params.nm_aparelhos.replace(/\+/g, " "));
 
-    connection.query(query, [id_tipo,nm_aparelhos, Id_academia], (err, result) => {
+    client.query(query, [id_tipo,nm_aparelhos, Id_academia], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -226,7 +226,7 @@ app.post('/CadastrarUsuario/:email/:senha/:PrimeiroNome/:Sobrenome/:Telefone/:Ge
     const Telefone = decodeURIComponent(params.Telefone.replace(/\+/g, " "));
     const Genero = decodeURIComponent(params.Genero.replace(/\+/g, " "));
 
-    connection.query(query, [email, senha, PrimeiroNome, Sobrenome, Telefone, Genero], (err, result) => {
+    client.query(query, [email, senha, PrimeiroNome, Sobrenome, Telefone, Genero], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -256,7 +256,7 @@ app.post('/CadastrarEndereco/:idUsuario/:cep/:cidade/:estado/:bairro/:numero/:lo
     const Numero = decodeURIComponent(params.numero.replace(/\+/g, " "));
     const Logradouro = decodeURIComponent(params.logradouro.replace(/\+/g, " "));
 
-    connection.query(query, [idUsuario, CEP, Cidade, Estado, Bairro, Numero, Logradouro], (err, result) => {
+    client.query(query, [idUsuario, CEP, Cidade, Estado, Bairro, Numero, Logradouro], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -278,7 +278,7 @@ app.get('/ConsultarIDUsuario/:email', (req, res) => {
 
     const Email = decodeURIComponent(req.params.email.replace(/\+/g, " "));
 
-    connection.query(query, [Email], (err, result) => {
+    client.query(query, [Email], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -299,7 +299,7 @@ app.get('/ConsultarCadastroProf/:email', (req, res) => {
 
     const EmailTradado = `'${Email}'`;
 
-    connection.query(query, [EmailTradado], (err, result) => {
+    client.query(query, [EmailTradado], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -322,7 +322,7 @@ app.get('/ConsultarCadastroAluno/:cpf', (req, res) => {
 
     const CPF = decodeURIComponent(req.params.cpf.replace(/\+/g, " "));
 
-    connection.query(query, [CPF], (err, result) => {
+    client.query(query, [CPF], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -345,7 +345,7 @@ app.patch('/Atualizar_ID_usuario/:idUsuario/:email', (req, res) => {
     const ID_usuario = decodeURIComponent(req.params.idUsuario.replace(/\+/g, " "));
     const Email = decodeURIComponent(req.params.email.replace(/\+/g, " "));
 
-    connection.query(query, [ID_usuario, Email], (err, result) => {
+    client.query(query, [ID_usuario, Email], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -367,7 +367,7 @@ app.get('/login/:email/:senha', (req, res) => {
     const Email = decodeURIComponent(req.params.email.replace(/\+/g, " "));
     const Senha = decodeURIComponent(req.params.senha.replace(/\+/g, " "));
 
-    connection.query(query, [Email, Senha], (err, result) => {
+    client.query(query, [Email, Senha], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -389,7 +389,7 @@ app.get('/login/APP/:CPF/:senha', (req, res) => {
     const CPF = decodeURIComponent(req.params.CPF.replace(/\+/g, " "));
     const Senha = decodeURIComponent(req.params.senha.replace(/\+/g, " "));
 
-    connection.query(query, [CPF, Senha], (err, result) => {
+    client.query(query, [CPF, Senha], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -410,7 +410,7 @@ app.delete('/excluir_usuario/:idUsuario', (req, res) => {
 
     const ID_usuario = decodeURIComponent(req.params.idUsuario.replace(/\+/g, " "));
 
-    connection.query(query, [ID_usuario], (err, result) => {
+    client.query(query, [ID_usuario], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -433,7 +433,7 @@ app.delete('/excluir_acesso_aluno/:id', (req, res) => {
 
     const id = decodeURIComponent(req.params.id.replace(/\+/g, " "));
 
-    connection.query(query, [id], (err, result) => {
+    client.query(query, [id], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -457,7 +457,7 @@ app.delete('/excluir_exercicio/:id_exercicio', (req, res) => {
     // Decodifica e substitui os espaços no ID do exercício
     const id_exercicio = decodeURIComponent(req.params.id_exercicio.replace(/\+/g, " "));
 
-    connection.query(query, [id_exercicio], (err, result) => {
+    client.query(query, [id_exercicio], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -484,7 +484,7 @@ app.get('/ConsultaTreinoExist/:idGrupo/:ValueCamp/:id_Academia', (req, res) => {
     const searchValue = `%${valueCamp}%`;
 
 
-    connection.query(query, [searchValue, idGrupo, id_academia], (err, result) => {
+    client.query(query, [searchValue, idGrupo, id_academia], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -506,7 +506,7 @@ app.get('/ConsultaTreinoExist/:id', (req, res) => {
 
     let query = "SELECT * FROM treinos_criados WHERE id = ? ";
 
-    connection.query(query, [idTreino], (err, result) => {
+    client.query(query, [idTreino], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -535,7 +535,7 @@ app.put('/AlterarTreinoExist/:id', (req, res) => {
     let querySelect = "SELECT * FROM treinos_criados WHERE id = ?";
 
 
-    connection.query(querySelect, [idTreino], (err, result) => {
+    client.query(querySelect, [idTreino], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -591,7 +591,7 @@ app.put('/AlterarTreinoExist/:id', (req, res) => {
         values.push(idTreino);
 
         //console.log(queryUpdate);
-        connection.query(queryUpdate, values, (err, result) => {
+        client.query(queryUpdate, values, (err, result) => {
             console.log(queryUpdate);
             if (err) {
                 console.error('Erro na atualização:', err);
@@ -618,7 +618,7 @@ app.get('/ConsultarAlunosAtribuidos/:idProfessor/:idTreino', (req, res) => {
     const searchValue = `${Id_Professor}`;
 
 
-    connection.query(query, [searchValue,id_treino], (err, result) => {
+    client.query(query, [searchValue,id_treino], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -648,7 +648,7 @@ app.get('/ConsultaTreinoExist_idProf/:idProfessor', (req, res) => {
     const searchValue = `${Id_Professor}`;
 
 
-    connection.query(query, [searchValue], (err, result) => {
+    client.query(query, [searchValue], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
@@ -672,7 +672,7 @@ app.get('/TrazerTreinos/:nm_treino/:id_prof', (req, res) => {
 
     let query = "SELECT id, nm_treino, exercicios, series, repeticoes, comentarios  as count FROM treinos_criados WHERE nm_treino = ? AND id_prof = ?";
 
-    connection.query(query, [nm_treino, Id_Professor], (err, result) => {
+    client.query(query, [nm_treino, Id_Professor], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -695,7 +695,7 @@ app.get('/ConsultarNomeProf/:nm_treino/:id_prof', (req, res) => {
     const formattedQuery = query.replace('?', connection.escape(nm_treino)).replace('?', connection.escape(Id_Professor))
 
 
-    connection.query(query, [nm_treino_tratado, Id_Professor], (err, result) => {
+    client.query(query, [nm_treino_tratado, Id_Professor], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -719,7 +719,7 @@ app.get('/ConsultarIdTreino/', (req, res) => {
 
     let query = "SELECT MAX(id_identificador) FROM treinos_criados";
 
-    connection.query(query, (err, result) => {
+    client.query(query, (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -739,7 +739,7 @@ app.get('/ConsultarIdAcademia/', (req, res) => {
 
     let query = "SELECT MAX(id) FROM academias";
 
-    connection.query(query, (err, result) => {
+    client.query(query, (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -760,7 +760,7 @@ app.get('/ConsultarAlunoExistente/:idAluno', (req, res) => {
 
     let query = "SELECT nome,id_aluno FROM alunos WHERE id_aluno = ?";
 
-    connection.query(query, [ID_Aluno], (err, result) => {
+    client.query(query, [ID_Aluno], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
