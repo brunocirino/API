@@ -651,7 +651,7 @@ app.get('/ConsultarNomeProf/:nm_treino/:id_prof', (req, res) => {
 
 // Consultar o ID máximo de treino
 app.get('/ConsultarIdTreino/', (req, res) => {
-    const query = "SELECT MAX(id_identificador) as max_id FROM treinos_criados";
+    const query = "SELECT MAX(id_identificador) AS max_id FROM treinos_criados";
 
     client.query(query, (err, result) => {
         if (err) {
@@ -659,15 +659,32 @@ app.get('/ConsultarIdTreino/', (req, res) => {
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        const idTreino = result[0].max_id;
+        // Adicione logs para verificar o resultado
+        console.log('Resultado da consulta:', result);
+
+        // Verifique a estrutura do resultado
+        if (!result.rows || result.rows.length === 0) {
+            console.error('Nenhum resultado encontrado.');
+            return res.status(404).json({ sucesso: false, mensagem: 'Nenhum ID de treino encontrado' });
+        }
+
+        const idTreino = result.rows[0].max_id;
+        
+        // Verifique se max_id é null
+        if (idTreino === null) {
+            console.error('ID de treino é nulo.');
+            return res.status(404).json({ sucesso: false, mensagem: 'ID de treino é nulo' });
+        }
+
         console.log('Resultados ConsultarIdTreino:', idTreino);
-        res.status(200).json(idTreino);
+        res.status(200).json({ idTreino });
     });
 });
+
 
 // Consultar o ID máximo de academia
 app.get('/ConsultarIdAcademia/', (req, res) => {
-    const query = "SELECT MAX(id) as max_id FROM academias";
+    const query = "SELECT MAX(id) AS max_id FROM academias";
 
     client.query(query, (err, result) => {
         if (err) {
@@ -675,11 +692,29 @@ app.get('/ConsultarIdAcademia/', (req, res) => {
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        const idAcademia = result[0].max_id;
+        // Adicione logs para verificar o resultado
+        console.log('Resultado da consulta:', result);
+
+        // Verifique a estrutura do resultado
+        if (!result.rows || result.rows.length === 0) {
+            console.error('Nenhum resultado encontrado.');
+            return res.status(404).json({ sucesso: false, mensagem: 'Nenhum ID de academia encontrado' });
+        }
+
+        const idAcademia = result.rows[0].max_id;
+        
+        // Verifique se max_id é null
+        if (idAcademia === null) {
+            console.error('ID de academia é nulo.');
+            return res.status(404).json({ sucesso: false, mensagem: 'ID de academia é nulo' });
+        }
+
         console.log('Resultados ConsultarIdAcademia:', idAcademia);
-        res.status(200).json(idAcademia);
+        res.status(200).json({ idAcademia });
     });
 });
+
+
 
 // Consultar aluno existente por ID
 app.get('/ConsultarAlunoExistente/:idAluno', (req, res) => {
