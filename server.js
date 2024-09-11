@@ -67,18 +67,19 @@ app.get('/login/APP/:CPF/:senha', (req, res) => {
 app.get('/ConsultaGrupoExist', (req, res) => {
     let query = "SELECT id, Nome FROM grupo_treino";
 
-    client.query(query, (err, rows) => {
+    client.query(query, (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
+        // Acessar a propriedade rows do resultado
         const grupoRows = result.rows;
 
         // Transformar os resultados em um formato JSON simples
         const results = grupoRows.map(row => ({
             id: row.id,
-            Nome: row.Nome
+            Nome: row.nome
         }));
 
         console.log('Resultados:', results);
@@ -87,17 +88,21 @@ app.get('/ConsultaGrupoExist', (req, res) => {
     });
 });
 
+
 app.get('/ConsultaAcademiaExist', (req, res) => {
     let query = "SELECT DISTINCT id, Nome FROM academias";
 
-    client.query(query, (err, rows) => {
+    client.query(query, (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
+        // Acessar a propriedade rows do resultado
+        const academiaRows = result.rows;
+
         // Transformar os resultados em um formato JSON simples
-        const results = rows.map(row => ({
+        const results = academiaRows.map(row => ({
             id: row.id,
             Nome: row.Nome
         }));
@@ -110,10 +115,9 @@ app.get('/ConsultaAcademiaExist', (req, res) => {
 
 
 app.post('/CriarGrupo/:nome', (req, res) => {
+    let query = "INSERT INTO grupo_treino (Nome) VALUES ($1) RETURNING id";
 
-    let query = "INSERT INTO grupo_treino (Nome) VALUES (?)";
-
-    const params = req.params
+    const params = req.params;
 
     client.query(query, [params.nome], (err, result) => {
         if (err) {
@@ -121,22 +125,20 @@ app.post('/CriarGrupo/:nome', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        console.log('Grupo criado com sucesso', result.insertId);
+        console.log('Grupo criado com sucesso', result.rows[0].id);
 
-        res.status(201).json({ mensagem: 'Grupo criado com sucesso', id: result.insertId });
+        res.status(201).json({ mensagem: 'Grupo criado com sucesso', id: result.rows[0].id });
     });
 });
 
 app.post('/CadastrarTreino/:id_prof/:nm_treino/:exercicio/:series/:repeticoes/:comentarios/:id_identificador', (req, res) => {
+    let query = "INSERT INTO treinos_criados (id_prof, nm_treino, exercicios, series, repeticoes, comentarios, id_identificador) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id";
 
-    let query = "INSERT INTO treinos_criados (id_prof, nm_treino, exercicios, series, repeticoes, comentarios, id_identificador) VALUES (?,?,?,?,?,?,?)";
-
-    const params = req.params
+    const params = req.params;
 
     const Nm_Treino_tratado = decodeURIComponent(params.nm_treino.replace(/\+/g, " "));
     const Nm_exercicio_tratado = decodeURIComponent(params.exercicio.replace(/\+/g, " "));
     const Nm_comentario_tratado = decodeURIComponent(params.comentarios.replace(/\+/g, " "));
-    
 
     client.query(query, [params.id_prof, Nm_Treino_tratado, Nm_exercicio_tratado, params.series, params.repeticoes, Nm_comentario_tratado, params.id_identificador], (err, result) => {
         if (err) {
@@ -146,15 +148,14 @@ app.post('/CadastrarTreino/:id_prof/:nm_treino/:exercicio/:series/:repeticoes/:c
 
         console.log("Treino cadastrado", Nm_comentario_tratado);
 
-        res.status(201).json({ sucesso: true, mensagem: 'Treino criado com sucesso', id: result.insertId });
+        res.status(201).json({ sucesso: true, mensagem: 'Treino criado com sucesso', id: result.rows[0].id });
     });
 });
 
 app.post('/CadastrarAcademia/:id_academia/:nm_academia/', (req, res) => {
+    let query = "INSERT INTO academias (id, Nome) VALUES ($1, $2)";
 
-    let query = "INSERT INTO academias (id, Nome) VALUES (?,?)";
-
-    const params = req.params
+    const params = req.params;
 
     const Id_academia = decodeURIComponent(params.id_academia.replace(/\+/g, " "));
     const nm_academia = decodeURIComponent(params.nm_academia.replace(/\+/g, " "));
@@ -167,15 +168,14 @@ app.post('/CadastrarAcademia/:id_academia/:nm_academia/', (req, res) => {
 
         console.log('Cadastro academia feito');
 
-        res.status(201).json({ sucesso: true, mensagem: 'Academia cadastrada com sucesso', id: result.insertId });
+        res.status(201).json({ sucesso: true, mensagem: 'Academia cadastrada com sucesso' });
     });
 });
 
 app.post('/AtribuirAluno/:id_prof/:id_aluno/:id_treino', (req, res) => {
+    let query = "INSERT INTO treinos_atribuidos (id_prof, id_aluno, id_treino) VALUES ($1, $2, $3)";
 
-    let query = "INSERT into treinos_atribuidos (id_prof, id_aluno, id_treino) VALUES (?,?,?)";
-
-    const params = req.params
+    const params = req.params;
 
     const id_prof = decodeURIComponent(params.id_prof.replace(/\+/g, " "));
     const id_aluno = decodeURIComponent(params.id_aluno.replace(/\+/g, " "));
@@ -189,21 +189,20 @@ app.post('/AtribuirAluno/:id_prof/:id_aluno/:id_treino', (req, res) => {
 
         console.log('Aluno atribuído com sucesso');
 
-        res.status(201).json({ sucesso: true, mensagem: 'Aluno atribuído com sucesso', id: result.insertId });
+        res.status(201).json({ sucesso: true, mensagem: 'Aluno atribuído com sucesso' });
     });
 });
 
 app.post('/CadastrarAparelhos/:id_tipo/:nm_aparelhos/:id_academia', (req, res) => {
+    let query = "INSERT INTO tipos_treinos (id_tipo, nome, id_academia) VALUES ($1, $2, $3)";
 
-    let query = "INSERT INTO tipos_treinos (id_tipo, nome, id_academia) VALUES (?,?,?)";
-
-    const params = req.params
+    const params = req.params;
 
     const id_tipo = decodeURIComponent(params.id_tipo.replace(/\+/g, " "));
     const Id_academia = decodeURIComponent(params.id_academia.replace(/\+/g, " "));
     const nm_aparelhos = decodeURIComponent(params.nm_aparelhos.replace(/\+/g, " "));
 
-    client.query(query, [id_tipo,nm_aparelhos, Id_academia], (err, result) => {
+    client.query(query, [id_tipo, nm_aparelhos, Id_academia], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
@@ -211,15 +210,14 @@ app.post('/CadastrarAparelhos/:id_tipo/:nm_aparelhos/:id_academia', (req, res) =
 
         console.log('Cadastro Aparelho feito');
 
-        res.status(201).json({ sucesso: true, mensagem: 'Academia cadastrada com sucesso', id: result.insertId });
+        res.status(201).json({ sucesso: true, mensagem: 'Aparelho cadastrado com sucesso' });
     });
 });
 
 app.post('/CadastrarUsuario/:email/:senha/:PrimeiroNome/:Sobrenome/:Telefone/:Genero', (req, res) => {
+    let query = "INSERT INTO usuários (email, senha, primeiroNome, sobrenome, celular, genero) VALUES ($1, $2, $3, $4, $5, $6)";
 
-    let query = "INSERT INTO usuários (email, senha, primeiroNome, Sobrenome, Celular, genero) VALUES (?,?,?,?,?,?)";
-
-    const params = req.params
+    const params = req.params;
 
     const email = decodeURIComponent(params.email.replace(/\+/g, " "));
     const senha = decodeURIComponent(params.senha.replace(/\+/g, " "));
@@ -236,8 +234,8 @@ app.post('/CadastrarUsuario/:email/:senha/:PrimeiroNome/:Sobrenome/:Telefone/:Ge
 
         console.log(result);
 
-        if (result.affectedRows > 0) {
-            res.status(201).json({ sucesso: true, mensagem: 'Usuário cadastrado com sucesso', id: result.insertId });
+        if (result.rowCount > 0) {
+            res.status(201).json({ sucesso: true, mensagem: 'Usuário cadastrado com sucesso' });
         } else {
             res.status(500).json({ sucesso: false, mensagem: 'Erro ao cadastrar usuário no banco de dados' });
         }
@@ -245,10 +243,9 @@ app.post('/CadastrarUsuario/:email/:senha/:PrimeiroNome/:Sobrenome/:Telefone/:Ge
 });
 
 app.post('/CadastrarEndereco/:idUsuario/:cep/:cidade/:estado/:bairro/:numero/:logradouro', (req, res) => {
+    let query = "INSERT INTO endereços (id_usuario, cep, cidade, estado, bairro, numero, logradouro) VALUES ($1, $2, $3, $4, $5, $6, $7)";
 
-    let query = "INSERT INTO endereços (id_usuario, cep, cidade, estado, bairro, numero, logradouro) VALUES (?,?,?,?,?,?,?)";
-
-    const params = req.params
+    const params = req.params;
 
     const idUsuario = decodeURIComponent(params.idUsuario.replace(/\+/g, " "));
     const CEP = decodeURIComponent(params.cep.replace(/\+/g, " "));
@@ -266,17 +263,17 @@ app.post('/CadastrarEndereco/:idUsuario/:cep/:cidade/:estado/:bairro/:numero/:lo
 
         console.log(result);
 
-        if (result.affectedRows > 0) {
-            res.status(201).json({ sucesso: true, mensagem: 'Endereco cadastrado com sucesso', id: result.insertId });
+        if (result.rowCount > 0) {
+            res.status(201).json({ sucesso: true, mensagem: 'Endereço cadastrado com sucesso' });
         } else {
-            res.status(500).json({ sucesso: false, mensagem: 'Erro ao cadastrar Endereco no banco de dados' });
+            res.status(500).json({ sucesso: false, mensagem: 'Erro ao cadastrar endereço no banco de dados' });
         }
     });
 });
 
-app.get('/ConsultarIDUsuario/:email', (req, res) => {
 
-    let query = "SELECT ID FROM usuários WHERE email = ?";
+app.get('/ConsultarIDUsuario/:email', (req, res) => {
+    let query = "SELECT ID FROM usuários WHERE email = $1";
 
     const Email = decodeURIComponent(req.params.email.replace(/\+/g, " "));
 
@@ -286,7 +283,7 @@ app.get('/ConsultarIDUsuario/:email', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        id = result[0];
+        const id = result.rows[0];
 
         console.log('Consultei ID login', id);
         res.json(id);
@@ -294,20 +291,17 @@ app.get('/ConsultarIDUsuario/:email', (req, res) => {
 });
 
 app.get('/ConsultarCadastroProf/:email', (req, res) => {
-
-    let query = "SELECT COUNT(email)  AS emailCount FROM `usuários` WHERE email = ?";
+    let query = "SELECT COUNT(email) AS emailCount FROM usuários WHERE email = $1";
 
     const Email = decodeURIComponent(req.params.email.replace(/\+/g, " "));
 
-    const EmailTradado = `'${Email}'`;
-
-    client.query(query, [EmailTradado], (err, result) => {
+    client.query(query, [Email], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
         
-        const emailCount = result[0].emailCount;
+        const emailCount = result.rows[0].emailCount;
 
         if (emailCount == '0') {
             res.status(201).json({ sucesso: true, mensagem: 'Liberado para cadastro' });
@@ -319,8 +313,7 @@ app.get('/ConsultarCadastroProf/:email', (req, res) => {
 });
 
 app.get('/ConsultarCadastroAluno/:cpf', (req, res) => {
-
-    let query = "SELECT COUNT(cpf) FROM `alunos` WHERE cpf = '?';";
+    let query = "SELECT COUNT(cpf) AS cpfCount FROM alunos WHERE cpf = $1";
 
     const CPF = decodeURIComponent(req.params.cpf.replace(/\+/g, " "));
 
@@ -330,10 +323,10 @@ app.get('/ConsultarCadastroAluno/:cpf', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        const CPFCont = result[0].CPFCont;
+        const cpfCount = result.rows[0].cpfCount;
 
-        if (CPFCont == 0) {
-            res.status(201).json({ sucesso: true, mensagem: 'Liberado para cadastro', id: result.insertId });
+        if (cpfCount == 0) {
+            res.status(201).json({ sucesso: true, mensagem: 'Liberado para cadastro' });
         } else {
             res.status(500).json({ sucesso: false, mensagem: 'Já existe um usuário cadastrado com essas informações' });
         }
@@ -341,8 +334,7 @@ app.get('/ConsultarCadastroAluno/:cpf', (req, res) => {
 });
 
 app.patch('/Atualizar_ID_usuario/:idUsuario/:email', (req, res) => {
-
-    let query = "UPDATE usuários SET id=? WHERE email=?";
+    let query = "UPDATE usuários SET id = $1 WHERE email = $2";
 
     const ID_usuario = decodeURIComponent(req.params.idUsuario.replace(/\+/g, " "));
     const Email = decodeURIComponent(req.params.email.replace(/\+/g, " "));
@@ -353,9 +345,9 @@ app.patch('/Atualizar_ID_usuario/:idUsuario/:email', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        console.log('Resultados:',result);
-        if (result.affectedRows > 0) {
-            res.status(201).json({ sucesso: true, mensagem: 'ID atualizdo com sucesso', id: result.insertId });
+        console.log('Resultados:', result);
+        if (result.rowCount > 0) {
+            res.status(201).json({ sucesso: true, mensagem: 'ID atualizado com sucesso' });
         } else {
             res.status(500).json({ sucesso: false, mensagem: 'Erro ao atualizar ID no banco de dados' });
         }
@@ -363,8 +355,7 @@ app.patch('/Atualizar_ID_usuario/:idUsuario/:email', (req, res) => {
 });
 
 app.get('/login/:email/:senha', (req, res) => {
-
-    let query = "SELECT COUNT(id) as count FROM usuários WHERE email = ? AND senha = ?";
+    let query = "SELECT COUNT(id) AS count FROM usuários WHERE email = $1 AND senha = $2";
 
     const Email = decodeURIComponent(req.params.email.replace(/\+/g, " "));
     const Senha = decodeURIComponent(req.params.senha.replace(/\+/g, " "));
@@ -375,9 +366,9 @@ app.get('/login/:email/:senha', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        console.log('Resultados:',result);
-        if (result[0].count > 0) {
-            res.status(200).json({ sucesso: true, mensagem: 'login realizado com sucesso' });
+        console.log('Resultados:', result);
+        if (result.rows[0].count > 0) {
+            res.status(200).json({ sucesso: true, mensagem: 'Login realizado com sucesso' });
         } else {
             res.status(404).json({ sucesso: false, mensagem: 'Erro ao realizar login no banco de dados' });
         }
@@ -385,8 +376,7 @@ app.get('/login/:email/:senha', (req, res) => {
 });
 
 app.get('/login/APP/:CPF/:senha', (req, res) => {
-
-    let query = "SELECT COUNT(id_aluno) as count FROM alunos WHERE cpf = ? AND senha = ?";
+    let query = "SELECT COUNT(id_aluno) AS count FROM alunos WHERE cpf = $1 AND senha = $2";
 
     const CPF = decodeURIComponent(req.params.CPF.replace(/\+/g, " "));
     const Senha = decodeURIComponent(req.params.senha.replace(/\+/g, " "));
@@ -397,9 +387,9 @@ app.get('/login/APP/:CPF/:senha', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        console.log('Resultados:',result);
-        if (result[0].count > 0) {
-            res.status(200).json({ sucesso: true, mensagem: 'login realizado com sucesso' });
+        console.log('Resultados:', result);
+        if (result.rows[0].count > 0) {
+            res.status(200).json({ sucesso: true, mensagem: 'Login realizado com sucesso' });
         } else {
             res.status(404).json({ sucesso: false, mensagem: 'Erro ao realizar login no banco de dados' });
         }
@@ -407,8 +397,7 @@ app.get('/login/APP/:CPF/:senha', (req, res) => {
 });
 
 app.delete('/excluir_usuario/:idUsuario', (req, res) => {
-
-    let query = "DELETE FROM usuários WHERE id=?";
+    let query = "DELETE FROM usuários WHERE id = $1";
 
     const ID_usuario = decodeURIComponent(req.params.idUsuario.replace(/\+/g, " "));
 
@@ -418,21 +407,19 @@ app.delete('/excluir_usuario/:idUsuario', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        
-        if (result.affectedRows > 0) {
-            res.status(201).json({ sucesso: true, mensagem: 'Usuário deletado com sucesso', id: result.insertId });
+        if (result.rowCount > 0) {
+            res.status(201).json({ sucesso: true, mensagem: 'Usuário deletado com sucesso' });
         } else {
             res.status(500).json({ sucesso: false, mensagem: 'Erro ao deletar usuário no banco de dados' });
         }
 
-        console.log('User excluído');
+        console.log('Usuário excluído');
     });
 });
 
+
 app.delete('/excluir_acesso_aluno/:id', (req, res) => {
-
     let query = "DELETE FROM treinos_atribuidos WHERE id = ?";
-
     const id = decodeURIComponent(req.params.id.replace(/\+/g, " "));
 
     client.query(query, [id], (err, result) => {
@@ -441,11 +428,10 @@ app.delete('/excluir_acesso_aluno/:id', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        
         if (result.affectedRows > 0) {
-            res.status(201).json({ sucesso: true, mensagem: 'Acesso removido com sucesso', id: result.insertId });
+            res.status(200).json({ sucesso: true, mensagem: 'Acesso removido com sucesso' });
         } else {
-            res.status(500).json({ sucesso: false, mensagem: 'Erro ao remover acesso no banco de dados' });
+            res.status(404).json({ sucesso: false, mensagem: 'Acesso não encontrado para exclusão' });
         }
 
         console.log('Acesso removido');
@@ -453,10 +439,7 @@ app.delete('/excluir_acesso_aluno/:id', (req, res) => {
 });
 
 app.delete('/excluir_exercicio/:id_exercicio', (req, res) => {
-
-    let query = "DELETE FROM treinos_criados WHERE id=?";
-    
-    // Decodifica e substitui os espaços no ID do exercício
+    let query = "DELETE FROM treinos_criados WHERE id = ?";
     const id_exercicio = decodeURIComponent(req.params.id_exercicio.replace(/\+/g, " "));
 
     client.query(query, [id_exercicio], (err, result) => {
@@ -470,10 +453,9 @@ app.delete('/excluir_exercicio/:id_exercicio', (req, res) => {
         } else {
             res.status(404).json({ sucesso: false, mensagem: 'Exercício não encontrado para exclusão' });
         }
-        console.log('Exercicio excluído!');
+        console.log('Exercício excluído!');
     });
 });
-
 
 app.get('/ConsultaTreinoExist/:idGrupo/:ValueCamp/:id_Academia', (req, res) => {
     const idGrupo = req.params.idGrupo;
@@ -481,10 +463,7 @@ app.get('/ConsultaTreinoExist/:idGrupo/:ValueCamp/:id_Academia', (req, res) => {
     const id_academia = req.params.id_Academia;
 
     let query = "SELECT nome FROM tipos_treinos WHERE nome LIKE ? AND id_tipo = ? AND id_academia = ?";
-
-
     const searchValue = `%${valueCamp}%`;
-
 
     client.query(query, [searchValue, idGrupo, id_academia], (err, result) => {
         if (err) {
@@ -492,13 +471,11 @@ app.get('/ConsultaTreinoExist/:idGrupo/:ValueCamp/:id_Academia', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-
         const formattedResults = result.map(row => ({
             nome: row.nome
         }));
 
-
-        console.log('Resultados:',formattedResults);
+        console.log('Resultados:', formattedResults);
         res.json(formattedResults);
     });
 });
@@ -506,14 +483,12 @@ app.get('/ConsultaTreinoExist/:idGrupo/:ValueCamp/:id_Academia', (req, res) => {
 app.get('/ConsultaTreinoExist/:id', (req, res) => {
     const idTreino = req.params.id;
 
-    let query = "SELECT * FROM treinos_criados WHERE id = ? ";
-
+    let query = "SELECT * FROM treinos_criados WHERE id = ?";
     client.query(query, [idTreino], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
-
 
         const formattedResults = result.map(row => ({
             Titulo: row.nm_treino,
@@ -523,20 +498,16 @@ app.get('/ConsultaTreinoExist/:id', (req, res) => {
             Comentario: row.comentarios
         }));
 
-
-        console.log('Resultados:',formattedResults);
+        console.log('Resultados:', formattedResults);
         res.json(formattedResults);
     });
 });
 
 app.put('/AlterarTreinoExist/:id', (req, res) => {
     const idTreino = req.params.id;
-    const { nm_treino, exercicios, series, repeticoes, comentarios, id_identificador } = req.body;
+    const { nm_treino, exercicios, series, repeticoes, comentarios } = req.body;
 
-    // Consulta para verificar o treino atual
     let querySelect = "SELECT * FROM treinos_criados WHERE id = ?";
-
-
     client.query(querySelect, [idTreino], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
@@ -547,10 +518,7 @@ app.put('/AlterarTreinoExist/:id', (req, res) => {
             return res.status(404).json({ mensagem: 'Treino não encontrado' });
         }
 
-        // Dados atuais do treino
         const treinoAtual = result[0];
-
-        // Verifica se há alterações
         const alteracoes = {
             nm_treino: treinoAtual.nm_treino !== nm_treino ? nm_treino : null,
             exercicios: treinoAtual.exercicios !== exercicios ? exercicios : null,
@@ -559,14 +527,12 @@ app.put('/AlterarTreinoExist/:id', (req, res) => {
             comentarios: treinoAtual.comentarios !== comentarios ? comentarios : null
         };
 
-        // Atualiza todos os treinos com o mesmo id_identificador, se houver alteração no título
         let queryUpdate = "UPDATE treinos_criados SET ";
         let values = [];
 
         if (alteracoes.nm_treino) {
             queryUpdate += "nm_treino = ?, ";
             values.push(alteracoes.nm_treino);
-            console.log(queryUpdate);
         }
         if (alteracoes.exercicios) {
             queryUpdate += "exercicios = ?, ";
@@ -585,16 +551,11 @@ app.put('/AlterarTreinoExist/:id', (req, res) => {
             values.push(alteracoes.comentarios);
         }
 
-        // Remove a vírgula e o espaço extras no final da query
         queryUpdate = queryUpdate.slice(0, -2);
         queryUpdate += " WHERE id = ?";
-
-        // Adiciona o id_identificador no final dos valores
         values.push(idTreino);
 
-        //console.log(queryUpdate);
         client.query(queryUpdate, values, (err, result) => {
-            console.log(queryUpdate);
             if (err) {
                 console.error('Erro na atualização:', err);
                 return res.status(500).json({ mensagem: 'Erro na atualização do banco de dados' });
@@ -608,118 +569,89 @@ app.put('/AlterarTreinoExist/:id', (req, res) => {
     });
 });
 
-
 app.get('/ConsultarAlunosAtribuidos/:idProfessor/:idTreino', (req, res) => {
     const Id_Professor = req.params.idProfessor;
     const id_treino = req.params.idTreino;
-    
 
-    let query = "SELECT t.id, alunos.nome FROM treinos_atribuidos as t JOIN alunos on t.id_aluno = alunos.id_aluno where t.id_prof = ? and t.id_treino = ?";
-
-
-    const searchValue = `${Id_Professor}`;
-
-
-    client.query(query, [searchValue,id_treino], (err, result) => {
+    let query = "SELECT t.id, alunos.nome FROM treinos_atribuidos as t JOIN alunos on t.id_aluno = alunos.id_aluno WHERE t.id_prof = ? AND t.id_treino = ?";
+    client.query(query, [Id_Professor, id_treino], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
-
 
         const formattedResults = result.map(row => ({
             id: row.id,
             nm_aluno: row.nome
         }));
 
-
-        console.log('Resultados:',formattedResults);
+        console.log('Resultados:', formattedResults);
         res.json(formattedResults);
     });
 });
 
 
 
+
+// Consultar treino existente por ID do professor
 app.get('/ConsultaTreinoExist_idProf/:idProfessor', (req, res) => {
-    const Id_Professor = req.params.idProfessor;
-    
+    const idProfessor = req.params.idProfessor;
+    const query = "SELECT DISTINCT nm_treino, id_identificador FROM treinos_criados WHERE id_prof = ?";
 
-    let query = "SELECT DISTINCT nm_treino, id_identificador FROM treinos_criados WHERE id_prof = ?";
-
-
-    const searchValue = `${Id_Professor}`;
-
-
-    client.query(query, [searchValue], (err, result) => {
+    client.query(query, [idProfessor], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ mensagem: 'Erro na consulta ao banco de dados' });
         }
-
 
         const formattedResults = result.map(row => ({
             nm_treino: row.nm_treino,
             id_treino: row.id_identificador
         }));
 
-
-        console.log('Resultados:',formattedResults);
+        console.log('Resultados:', formattedResults);
         res.json(formattedResults);
     });
 });
 
+// Trazer treinos por nome e ID do professor
 app.get('/TrazerTreinos/:nm_treino/:id_prof', (req, res) => {
-    const Id_Professor = req.params.id_prof;
-    const nm_treino = req.params.nm_treino;
+    const idProfessor = req.params.id_prof;
+    const nmTreino = req.params.nm_treino;
+    const query = "SELECT id, nm_treino, exercicios, series, repeticoes, comentarios FROM treinos_criados WHERE nm_treino = ? AND id_prof = ?";
 
-    let query = "SELECT id, nm_treino, exercicios, series, repeticoes, comentarios  as count FROM treinos_criados WHERE nm_treino = ? AND id_prof = ?";
-
-    client.query(query, [nm_treino, Id_Professor], (err, result) => {
+    client.query(query, [nmTreino, idProfessor], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-        console.log('Resultados TrazerTreinos:' ,result);
-
-        res.status(201).json(result);
+        console.log('Resultados TrazerTreinos:', result);
+        res.status(200).json(result);
     });
 });
 
+// Consultar nome do professor por treino
 app.get('/ConsultarNomeProf/:nm_treino/:id_prof', (req, res) => {
-    const Id_Professor = req.params.id_prof;
-    const nm_treino = req.params.nm_treino;
+    const idProfessor = req.params.id_prof;
+    const nmTreino = decodeURIComponent(req.params.nm_treino.replace(/\+/g, " "));
+    const query = "SELECT COUNT(nm_treino) as count FROM treinos_criados WHERE nm_treino = ? AND id_prof = ?";
 
-    const nm_treino_tratado = decodeURIComponent(nm_treino.replace(/\+/g, " "));
-
-    let query = "SELECT COUNT(nm_treino) as count FROM treinos_criados WHERE nm_treino = ? AND id_prof = ?";
-
-    const formattedQuery = query.replace('?', connection.escape(nm_treino)).replace('?', connection.escape(Id_Professor))
-
-
-    client.query(query, [nm_treino_tratado, Id_Professor], (err, result) => {
+    client.query(query, [nmTreino, idProfessor], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
         }
-
-        
-        console.log('Resultados ConsultarNomeProf:' ,result);
-        console.log('Consulta SQL Gerada:', formattedQuery);
-        console.log(nm_treino_tratado); // Deve mostrar 'Teste Peito'
-
 
         const count = result[0].count;
-
-         // Criar a resposta JSON
-         res.json({ nomeValido: count === 0 });
+        console.log('Resultados ConsultarNomeProf:', result);
+        res.json({ nomeValido: count === 0 });
     });
 });
 
+// Consultar o ID máximo de treino
 app.get('/ConsultarIdTreino/', (req, res) => {
-
-
-    let query = "SELECT MAX(id_identificador) FROM treinos_criados";
+    const query = "SELECT MAX(id_identificador) as max_id FROM treinos_criados";
 
     client.query(query, (err, result) => {
         if (err) {
@@ -727,19 +659,15 @@ app.get('/ConsultarIdTreino/', (req, res) => {
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-
-       const id_treino = result[0]['MAX(id_identificador)'];
-
-        console.log('Resultados ConsultarIdTreino:' ,id_treino);
-
-        res.status(201).json(id_treino);
+        const idTreino = result[0].max_id;
+        console.log('Resultados ConsultarIdTreino:', idTreino);
+        res.status(200).json(idTreino);
     });
 });
 
+// Consultar o ID máximo de academia
 app.get('/ConsultarIdAcademia/', (req, res) => {
-
-
-    let query = "SELECT MAX(id) FROM academias";
+    const query = "SELECT MAX(id) as max_id FROM academias";
 
     client.query(query, (err, result) => {
         if (err) {
@@ -747,38 +675,33 @@ app.get('/ConsultarIdAcademia/', (req, res) => {
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
         }
 
-
-       const id_academia = result[0]['MAX(id)'];
-
-        console.log('Resultados ConsultarIdTreino:' ,id_academia);
-
-        res.status(201).json(id_academia);
+        const idAcademia = result[0].max_id;
+        console.log('Resultados ConsultarIdAcademia:', idAcademia);
+        res.status(200).json(idAcademia);
     });
 });
 
+// Consultar aluno existente por ID
 app.get('/ConsultarAlunoExistente/:idAluno', (req, res) => {
+    const idAluno = req.params.idAluno;
+    const query = "SELECT nome, id_aluno FROM alunos WHERE id_aluno = ?";
 
-    const ID_Aluno = req.params.idAluno;
-
-    let query = "SELECT nome,id_aluno FROM alunos WHERE id_aluno = ?";
-
-    client.query(query, [ID_Aluno], (err, result) => {
+    client.query(query, [idAluno], (err, result) => {
         if (err) {
             console.error('Erro na consulta:', err);
             return res.status(500).json({ sucesso: false, mensagem: 'Erro na consulta ao banco de dados' });
         }
-
 
         const formattedResults = result.map(row => ({
             nm_aluno: row.nome,
             id_aluno: row.id_aluno
         }));
 
-        console.log('Resultados Consultar Aluno existente:' ,formattedResults);
-
-        res.status(201).json(formattedResults);
+        console.log('Resultados ConsultarAlunoExistente:', formattedResults);
+        res.status(200).json(formattedResults);
     });
 });
+
 
 // Inicializar o servidor
 const PORT = process.env.PORT || 3000;
