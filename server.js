@@ -90,7 +90,7 @@ app.get('/ConsultaGrupoExist', (req, res) => {
 
 
 app.get('/ConsultaAcademiaExist', (req, res) => {
-    let query = "SELECT DISTINCT id, Nome FROM academias";
+    let query = "SELECT DISTINCT id, nm_academia FROM academias";
 
     client.query(query, (err, result) => {
         if (err) {
